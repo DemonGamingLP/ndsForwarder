@@ -219,7 +219,7 @@ extern "C" {
                             buildResult = builder->loadTemplate(config->templates.at(config->currentTemplate));
                             if (buildResult->isSuccess()) {
                                 delete buildResult;
-                                buildResult = builder->buildCIA(entry.path.generic_string(),config->randomTID,customTitle,config->forceInstall);
+                                buildResult = builder->buildCIA(entry.path.generic_string(),config->randomTID,customTitle,config->forceInstall,config->ignoreBannerChecksum);
                             }
                         } else {
                             buildResult = builder->buildCIA(entry.path.generic_string());
@@ -261,7 +261,7 @@ extern "C" {
                                     swkbdInputText(&kbstate,customTitleBuffer,0x51);
                                     customTitle=std::string(customTitleBuffer);
                                 }
-                                buildResult = builder->buildCIA(dEntry.path().generic_string(),config->randomTID,customTitle, config->forceInstall);
+                                buildResult = builder->buildCIA(dEntry.path().generic_string(),config->randomTID,customTitle, config->forceInstall, config->ignoreBannerChecksum);
                             } else {
                                 buildResult = builder->buildCIA(dEntry.path().generic_string());
                             }
@@ -298,3 +298,4 @@ std::string shorten(std::string s, u16 len) {
     }
     return s;
 }
+

@@ -14,6 +14,7 @@ Config::Config() {
     this->customTitle=false;
     this->randomTID=false;
     this->forceInstall=false;
+    this->ignoreBannerChecksum=false;
     this->dsiwareCount=0;
     this->templates = std::vector<std::string>();
     this->templates.push_back("sdcard");
@@ -48,6 +49,7 @@ void Config::draw(bool interactive) {
     drawCheckbox(MENU_BORDER_HEIGHT+10,MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+20,0,20,20,0.67,BGColor,BORDER_COLOR,FOREGROUND_COLOR,gLang.parseString("config_randomTID").c_str(),this->randomTID);
     drawCheckbox(MENU_BORDER_HEIGHT+10,MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+60,0,20,20,0.67,BGColor,BORDER_COLOR,FOREGROUND_COLOR,gLang.parseString("config_customTitle").c_str(),this->customTitle);
     drawCheckbox(MENU_BORDER_HEIGHT+10,MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+100,0,20,20,0.67,BGColor,BORDER_COLOR,FOREGROUND_COLOR,gLang.parseString("config_forceInstall").c_str(),this->forceInstall);
+    drawCheckbox(MENU_BORDER_HEIGHT+10,MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+140,0,20,20,0.67,BGColor,BORDER_COLOR,FOREGROUND_COLOR,gLang.parseString("config_ignoreBannerChecksum").c_str(),this->ignoreBannerChecksum);
     if (this->templates.size() > 1) {
         drawText(MENU_BORDER_HEIGHT+10,MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+140,0,0.67,BGColor,FOREGROUND_COLOR,"Template:",0);
         drawArrow(MENU_BORDER_HEIGHT+10,MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+160,0,10,10,FOREGROUND_COLOR,false);
@@ -57,7 +59,7 @@ void Config::draw(bool interactive) {
 }
 void Config::interact(touchPosition *touch) {
     if (touch->px > MENU_BORDER_HEIGHT+10 && touch->px < MENU_BORDER_HEIGHT+30) {
-        if (touch->py >= MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+20 && touch->py <= MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+50) {
+        if (touch->py >= MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+20 && touch->py <= MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+40) {
             this->randomTID=!this->randomTID;
         }
         if (touch->py >= MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+60 && touch->py <= MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+80) {
@@ -65,6 +67,9 @@ void Config::interact(touchPosition *touch) {
         }
         if (touch->py >= MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+100 && touch->py <= MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+120) {
             this->forceInstall=!this->forceInstall;
+        }
+        if (touch->py >= MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+140 && touch->py <= MENU_BORDER_HEIGHT+MENU_HEADING_HEIGHT+160) {
+            this->ignoreBannerChecksum=!this->ignoreBannerChecksum;
         }
     }
     if (touch->px >= MENU_BORDER_HEIGHT+10 && touch->px <= MENU_BORDER_HEIGHT+20 &&
@@ -95,6 +100,9 @@ void Config::interactKey(u32* key) {
     if (*key & KEY_A) {
         this->forceInstall=!this->forceInstall;
     }
+    if (*key & KEY_B) {
+        this->ignoreBannerChecksum=!this->ignoreBannerChecksum;
+    }
     if (*key & KEY_LEFT) {
         this->currentTemplate--;
         if (this->currentTemplate < 0) {
@@ -107,4 +115,5 @@ void Config::interactKey(u32* key) {
             this->currentTemplate = 0;
         }
     }
+
 }

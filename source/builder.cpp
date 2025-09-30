@@ -100,11 +100,11 @@ ReturnResult* Builder::initialize() {
 
     return new ReturnResult(ERROR_SUCCESS,"");
 }
-ReturnResult* Builder::buildSRL(std::string filename, bool randomTid, std::string customTitle, bool force) {
+ReturnResult* Builder::buildSRL(std::string filename, bool randomTid, std::string customTitle, bool force, bool ignoreBannerChecksum) {
     if (filename.size() > this->launchPathLen) {
         return new ReturnResult(ERROR_SRL|ERROR_PATH,"");
     }
-    logger.debug(gLang.parseString("debug_settings",randomTid,force,customTitle.c_str()));
+    logger.debug(gLang.parseString("debug_settings",randomTid,force,ignoreBannerChecksum,customTitle.c_str()));
     //TODO Load nds file
     tDSiHeader header = {};
     // sNDSHeader header={};
@@ -186,54 +186,55 @@ ReturnResult* Builder::buildSRL(std::string filename, bool randomTid, std::strin
     dbgfile.write((char*)&banner,sizeof(banner));
     dbgfile.close();
     #endif
-    u16 expectedCRC = crc16Modbus(&(banner.icon),0x820);
-    if (expectedCRC != banner.crcv1) {
-        logger.debug(gLang.parseString("debug_crc",banner.crcv1,expectedCRC));
-        std::string message = gLang.parseString("builder_invalidBannerCRC","1");
-        logger.error(message);
-        return new ReturnResult(ERROR_SRL|ERROR_CRC_BANNER_1,message);
-    }
-    if (banner.version > 1) {
-        expectedCRC = crc16Modbus(&(banner.icon),0x920);
-        if (expectedCRC != banner.crcv2 ) {
-            logger.debug(gLang.parseString("debug_crc",banner.crcv2,expectedCRC));
-            std::string message = gLang.parseString("builder_invalidBannerCRC","2");
-            logger.error(message);
-            if (!force) { 
-                return new ReturnResult(ERROR_SRL|ERROR_CRC_BANNER_2,message);
-            }else{
-                banner.version = 1;
-            }
-        }
-    }
-    if (banner.version > 2) {
-        expectedCRC = crc16Modbus(&(banner.icon),0xA20);
-        if (expectedCRC != banner.crcv3) {
-            logger.debug(gLang.parseString("debug_crc",banner.crcv3,expectedCRC));
-            std::string message = gLang.parseString("builder_invalidBannerCRC","3");
-            logger.error(message);
-            if (!force) { 
-                return new ReturnResult(ERROR_SRL|ERROR_CRC_BANNER_3,message);
-            }else{
-                banner.version = 1;
-            }
-        }
-    }
+	if (!ignoreBannerChecksum) {
+    	u16 expectedCRC = crc16Modbus(&(banner.icon),0x820);
+    	if (expectedCRC != banner.crcv1) {
+        	logger.debug(gLang.parseString("debug_crc",banner.crcv1,expectedCRC));
+        	std::string message = gLang.parseString("builder_invalidBannerCRC","1");
+        	logger.error(message);
+        	return new ReturnResult(ERROR_SRL|ERROR_CRC_BANNER_1,message);
+    	}
+    	if (banner.version > 1) {
+        	expectedCRC = crc16Modbus(&(banner.icon),0x920);
+        	if (expectedCRC != banner.crcv2 ) {
+            	logger.debug(gLang.parseString("debug_crc",banner.crcv2,expectedCRC));
+            	std::string message = gLang.parseString("builder_invalidBannerCRC","2");
+            	logger.error(message);
+            	if (!force) { 
+                	return new ReturnResult(ERROR_SRL|ERROR_CRC_BANNER_2,message);
+            	}else{
+                	banner.version = 1;
+            	}
+        	}
+    	}
+    	if (banner.version > 2) {
+        	expectedCRC = crc16Modbus(&(banner.icon),0xA20);
+        	if (expectedCRC != banner.crcv3) {
+            	logger.debug(gLang.parseString("debug_crc",banner.crcv3,expectedCRC));
+            	std::string message = gLang.parseString("builder_invalidBannerCRC","3");
+            	logger.error(message);
+            	if (!force) { 
+                	return new ReturnResult(ERROR_SRL|ERROR_CRC_BANNER_3,message);
+            	}else{
+                	banner.version = 1;
+            	}
+        	}
+    	}
     
-    if ((banner.version & 0x100) > 0) {
-        expectedCRC = crc16Modbus(&(banner.animated_icons),0x1180);
-        if (expectedCRC != banner.crcv103) {
-            logger.debug(gLang.parseString("debug_crc",banner.crcv103,expectedCRC));
-            std::string message = gLang.parseString("builder_invalidBannerCRC","4");
-            logger.error(message);
-            if (!force) { 
-                return new ReturnResult(ERROR_SRL|ERROR_CRC_BANNER_ANIMATED,message);
-            }else{
-                banner.version = 1;
-            }
-        }
-    }
-    
+    	if ((banner.version & 0x100) > 0) {
+        	expectedCRC = crc16Modbus(&(banner.animated_icons),0x1180);
+        	if (expectedCRC != banner.crcv103) {
+            	logger.debug(gLang.parseString("debug_crc",banner.crcv103,expectedCRC));
+            	std::string message = gLang.parseString("builder_invalidBannerCRC","4");
+            	logger.error(message);
+            	if (!force) { 
+                	return new ReturnResult(ERROR_SRL|ERROR_CRC_BANNER_ANIMATED,message);
+            	}else{
+               		banner.version = 1;
+            	}
+        	}
+    	}
+	}
     if(customBMPIcon) {
         if (R_SUCCEEDED(loadBmpAsIcon(customIconFilename,&banner))) {
             banner.version &= 3; // clear animated icon identifier
@@ -337,13 +338,13 @@ void writeArray(const void* data, u32 size) {
     std::cout << std::endl;
 }
 #endif
-ReturnResult* Builder::buildCIA(std::string filename, bool randomTid, std::string customTitle, bool force) {
+ReturnResult* Builder::buildCIA(std::string filename, bool randomTid, std::string customTitle, bool force, bool ignoreBannerChecksum) {
 
 //    const u16 contentCount = 1;
     // GET RANDOM CONTENT ID
     u8 contentID[4]={0x00,0x02,0x03,0x04};
     PS_GenerateRandomBytes(contentID+1,3);
-    ReturnResult* srlResult = buildSRL(filename, randomTid, customTitle, force);
+    ReturnResult* srlResult = buildSRL(filename, randomTid, customTitle, force, ignoreBannerChecksum);
     if (!srlResult->isSuccess()) {
         logger.error(gLang.getString("builder_fail"));
         return srlResult;
@@ -549,4 +550,6 @@ void Builder::parseTemplate(std::string path) {
     }
     f.close();
    
+
 }
+

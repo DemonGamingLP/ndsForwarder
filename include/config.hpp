@@ -10,6 +10,7 @@ class Config {
     bool randomTID;
     bool customTitle;
     bool forceInstall;
+    bool ignoreBannerChecksum;
     std::vector<std::string> templates;
     unsigned int currentTemplate;
     unsigned long dsiwareCount;
@@ -17,4 +18,5 @@ class Config {
     void interact(touchPosition *touch);
     void interactKey(u32 *key);
     Config();
+
 };
